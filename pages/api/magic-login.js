@@ -31,6 +31,13 @@ export default async function handler(req, res) {
 
     console.log('[magic-login] Processando:', { email, name, wh_id });
 
+    // OBTER O DOMÍNIO ATUAL DINAMICAMENTE
+    const protocol = req.headers['x-forwarded-proto'] || (req.connection.encrypted ? 'https' : 'http');
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const baseUrl = `${protocol}://${host}`;
+    
+    console.log('[magic-login] URL base detectada:', baseUrl);
+
     // 1. Verifica se usuário já existe na tabela
     const { data: existingUser, error: lookupError } = await supabaseAdmin
       .from('user')
@@ -89,15 +96,15 @@ export default async function handler(req, res) {
       authUserId = existingUser.id;
     }
 
-    // 3. MÉTODO SIMPLIFICADO - Redireciona direto para CRM com timing
+    // 3. MÉTODO SIMPLIFICADO - Redireciona usando URL dinâmica
     if (isNewUser) {
       // Para usuários novos, usa página de loading que aguarda e faz login
       console.log('[magic-login] Redirecionando usuário novo para página de loading...');
-      return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/auth/loading?email=${encodeURIComponent(email)}&new_user=true`);
+      return res.redirect(`${baseUrl}/auth/loading?email=${encodeURIComponent(email)}&new_user=true`);
     } else {
       // Para usuários existentes, redireciona direto
       console.log('[magic-login] Redirecionando usuário existente direto para CRM...');
-      return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/crm?magic_login=${encodeURIComponent(email)}`);
+      return res.redirect(`${baseUrl}/crm?magic_login=${encodeURIComponent(email)}`);
     }
 
   } catch (err) {
