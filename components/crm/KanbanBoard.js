@@ -141,7 +141,7 @@ export default function KanbanBoard({
                         IA
                       </span>
                     ) : (
-                      <span className="px-2 py-1 text-xs font-medium bg-white text-black rounded-full border border-black">
+                      <span className="px-2 py-1 text-xs font-medium bg-white text-black rounded-full border border-[#E6C39C]">
                         Manual
                       </span>
                     )}

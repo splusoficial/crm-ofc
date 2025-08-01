@@ -27,5 +27,8 @@ coverage/
 
 # Vercel preview info (criado localmente em alguns builds)
 .vercel/.previewinfo
- 
- 
+
+# Ignorar telas de login e register
+pages/login.js
+pages/register.js
+

@@ -89,7 +89,11 @@ export default function Layout({ children }) {
   };
 
   const navigationItems = [
-    { title: 'Voltar ao Sistema', action: () => window.history.back(), icon: ArrowLeft },
+    {
+      title: 'Voltar ao Sistema',
+      action: () => window.location.href = 'https://secretariaplus.com.br',
+      icon: ArrowLeft
+    },
     { title: 'CRM', url: createPageUrl('crm'), icon: KanbanIcon }
   ];
 
