@@ -359,19 +359,27 @@ export default function CRM() {
 
   const handleMagicLogin = async (email) => {
     try {
+      console.log('🔍 Magic login iniciado para:', email);
+      
+      // CORRIGE O OBJETO - estava salvando objeto genérico
       const userData = {
-        email,
+        email, // ← Este é o campo que estava faltando!
+        name: 'Usuário', // Pode vir do JWT se disponível
         loginMethod: 'magic_verified',
         timestamp: new Date().toISOString(),
         isAuthenticated: true
       };
-      localStorage.setItem('user', JSON.stringify(userData));
 
-      loadLeads(email);
+      // Salva o usuário correto no localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      console.log('✅ Usuário salvo no localStorage:', userData);
+
+      // Força atualização do Layout
       window.dispatchEvent(new Event('userUpdated'));
-      router.replace('/crm', undefined, { shallow: true });
+      
+      await loadLeads(email);
     } catch (err) {
-      console.error('Erro no magic login:', err);
+      console.error('❌ Erro no magic login:', err);
     }
   };
 

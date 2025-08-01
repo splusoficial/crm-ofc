@@ -57,10 +57,13 @@ export default function Layout({ children }) {
 
   const loadUserFromStorage = () => {
     try {
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      console.log('Layout verificando localStorage:', storedUser);
-      console.log('Layout - Email:', storedUser?.email);
-      console.log('Layout - IsAuthenticated:', storedUser?.isAuthenticated);
+      const storedUserString = localStorage.getItem('user') || '{}';
+      console.log('🔍 Raw localStorage:', storedUserString); // ← Adiciona este log
+    
+      const storedUser = JSON.parse(storedUserString);
+      console.log('🔍 Parsed user object:', storedUser);
+      console.log('🔍 User email:', storedUser?.email);
+      console.log('🔍 User isAuthenticated:', storedUser?.isAuthenticated);
       
       if (storedUser?.email) {
         console.log('✅ Layout encontrou usuário válido:', storedUser.email);
@@ -70,9 +73,9 @@ export default function Layout({ children }) {
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
         
-        setLoggedUser(storedUser); // CORRIGIDO: use setLoggedUser
+        setLoggedUser(storedUser);
       } else {
-        console.log('❌ Layout não encontrou email válido');
+        console.log('❌ Layout não encontrou email válido - objeto:', storedUser);
       }
     } catch (error) {
       console.error('💥 Erro ao carregar usuário do localStorage:', error);
