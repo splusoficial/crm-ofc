@@ -54,5 +54,3 @@ export async function getServerSideProps(context) {
 export default function MagicPage() {
   return <p>Verificando e redirecionando...</p>;
 }
-
-a
