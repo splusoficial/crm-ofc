@@ -3,7 +3,7 @@ import { Users } from 'lucide-react';
 import { TrendingUp } from 'lucide-react';
 
 export default function ManualMoveInfoModal({ isOpen, onClose }) {
-    const [dontShowAgain, setDontShowAgain] = useState(false);
+    const [dontShowAgain, setDontShowAgain] = React.useState(false);
 
     if (!isOpen) return null;
 
@@ -15,7 +15,7 @@ export default function ManualMoveInfoModal({ isOpen, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-[0.7] flex items-center justify-center z-50 p-6">
             <div className="bg-white rounded-xl max-w-4xl w-full p-7 shadow-2xl text-center">
                 <h2 className="text-2xl font-bold mb-6 text-gray-900">
                     Passagem de Leads
@@ -34,13 +34,12 @@ export default function ManualMoveInfoModal({ isOpen, onClose }) {
                                 </span>
                             </div>
                         </div>
-                        <div className="p-6 text-left">
-                            <h4 className="font-semibold text-md mb-2 text-gray-800">
-                                Atualização Automática
-                            </h4>
-                            <p className="text-base text-gray-700 leading-relaxed">
-                                Esta etapa pode ser atualizada por você, mas ela já é atualizada automaticamente pela inteligência artificial.
-                            </p>
+                        <div className="p-6 text-left text-gray-700 leading-relaxed text-sm space-y-3">
+                            <p><strong>Etapas com a tag IA:</strong> A IA lê as mensagens do WhatsApp e move o lead sozinha para a etapa certa, como “Interessado”.</p>
+                            <ul className="list-disc list-inside">
+                                <li>Você não precisa fazer nada.</li>
+                                <li>🖐️ Mas, se quiser, pode arrastar o card manualmente.</li>
+                            </ul>
                         </div>
                     </div>
                     {/* Exemplo Manual */}
@@ -53,13 +52,12 @@ export default function ManualMoveInfoModal({ isOpen, onClose }) {
                                 </span>
                             </div>
                         </div>
-                        <div className="p-6 text-left">
-                            <h4 className="font-semibold text-md mb-2 text-gray-800">
-                                Atualização Manual
-                            </h4>
-                            <p className="text-base text-gray-700 leading-relaxed">
-                                Esta etapa deve ser atualizada manualmente por quem está fisicamente na clínica.
-                            </p>
+                        <div className="p-6 text-left text-gray-700 leading-relaxed text-sm space-y-3">
+                            <p><strong>Etapas com a tag manual:</strong> São situações fora do WhatsApp, como: "Compareceu", "Vendeu Procedimento"</p>
+                            <ul className="list-disc list-inside">
+                                <li>A IA não sabe disso.</li>
+                                <li>Você precisa arrastar o card manualmente.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>

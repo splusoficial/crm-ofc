@@ -86,8 +86,8 @@ export default function Layout({ children }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    setLoggedUser(null);
+    // localStorage.removeItem('user');
+    // setLoggedUser(null);
     // Redireciona para o sistema principal usando a env var
     window.location.href = mainSystemUrl;
   };

@@ -149,7 +149,7 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
   const historico = editedLead.activity_history || [];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex">
 
         {/* Sidebar - Informações Fixas */}

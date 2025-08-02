@@ -20,7 +20,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-[0.7] flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-xl w-full p-8 shadow-2xl text-center">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{backgroundColor: 'rgba(194, 148, 109, 0.1)'}}>
           <KanbanIcon className="w-8 h-8" style={{color: '#C2946D'}} />
