@@ -6,6 +6,7 @@ import FilterBar from '../components/crm/FilterBar';
 import KanbanBoard from '../components/crm/KanbanBoard';
 import ListView from '../components/crm/ListView';
 import LeadDetailModal from '../components/crm/LeadDetailModal';
+import AddLeadModal from '../components/crm/AddLeadModal';
 import SidebarToggleIcon from '../components/crm/icons/SidebarToggleIcon';
 import { useToggleSidebar } from '../Layout';
 import { useRouter } from 'next/router';
@@ -20,6 +21,7 @@ export default function CRM() {
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('todas');
   const [isLoading, setIsLoading] = useState(true);
+  const [showAddLead, setShowAddLead] = useState(false);
 
   const { toggleSidebar } = useToggleSidebar();
   const router = useRouter();
@@ -421,6 +423,7 @@ export default function CRM() {
             selectedLeads={selectedLeads}
             onBulkMove={handleBulkMove}
             leads={filteredLeads}
+            onAddLead={() => setShowAddLead(true)}
           />
 
           {isLoading ? (
@@ -458,6 +461,17 @@ export default function CRM() {
             isOpen={!!selectedLead}
             onClose={() => setSelectedLead(null)}
             onUpdate={handleUpdateLead}
+          />
+
+          <AddLeadModal
+            isOpen={showAddLead}
+            onClose={() => setShowAddLead(false)}
+            onSubmit={(newLead) => {
+              // Atualiza a lista de leads localmente
+              setLeads(prev => [...prev, newLead]);
+              setFilteredLeads(prev => [...prev, newLead]);
+              setShowAddLead(false);
+            }}
           />
         </div>
       </div>

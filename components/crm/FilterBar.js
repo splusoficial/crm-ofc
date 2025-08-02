@@ -21,7 +21,8 @@ export default function FilterBar({
   setViewMode,
   selectedLeads,
   onBulkMove,
-  leads
+  leads,
+  onAddLead // <-- Adicione esta prop para abrir o modal de novo lead
 }) {
   const handleBulkMove = (newStatus) => {
     onBulkMove(selectedLeads, newStatus);
@@ -34,35 +35,60 @@ export default function FilterBar({
   return (
     <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-6">
       <div className="flex flex-col gap-4">
-        {/* Top Metrics */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <span>Total de Leads: <span className="font-semibold text-gray-900">{totalLeads}</span></span>
+        {/* Top Metrics e botão alinhados na mesma linha */}
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>Total de Leads: <span className="font-semibold text-gray-900">{totalLeads}</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              <span>Conversão Total: <span className="font-semibold text-gray-900">{totalConversionRate}%</span></span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            <span>Conversão Total: <span className="font-semibold text-gray-900">{totalConversionRate}%</span></span>
+
+          {/* Botão alinhado à esquerda, longe das métricas */}
+          <div>
+            <button
+              type="button"
+              onClick={() => onAddLead && onAddLead()}
+              style={{
+                backgroundColor: 'white',
+                color: '#C2946D',
+                fontSize: '12px',
+                border: '1px solid #C2946D',
+                cursor: 'pointer',
+                padding: '0 16px',
+                borderRadius: '6px',
+                height: '40px',
+                fontWeight: 600,
+              }}
+            >
+              + Adicionar Lead
+            </button>
           </div>
         </div>
 
         <div className="w-full h-px bg-gray-200"></div>
 
         {/* Filter Controls */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search - HTML nativo */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Buscar por nome, WhatsApp ou procedimento..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="flex flex-1 gap-4 w-full">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Buscar por nome, WhatsApp ou procedimento..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10 w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
           </div>
 
-          {/* Filters */}
+          {/* Filters e outros controles (mantidos) */}
           <div className="flex gap-2">
             {/* Select de Prioridade - HTML nativo */}
             <div className="relative">
