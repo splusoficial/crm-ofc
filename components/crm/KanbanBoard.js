@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Users, DollarSign, TrendingUp } from 'lucide-react';
 import LeadCard from './LeadCard';
+import ManualMoveInfoModal from './ManualMoveInfoModal'; // ajuste o caminho se necessário
 
 export default function KanbanBoard({
   leads,
@@ -12,6 +13,7 @@ export default function KanbanBoard({
 }) {
   const [draggedLead, setDraggedLead] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [showManualMoveModal, setShowManualMoveModal] = useState(false);
 
   const columns = [
     { id: 'new_conversation', title: 'Nova Conversa', isAI: true },
@@ -39,6 +41,11 @@ export default function KanbanBoard({
     setDraggedLead(lead);
     e.dataTransfer.setData('text/plain', JSON.stringify(lead));
     e.dataTransfer.effectAllowed = 'move';
+
+    const dismissed = localStorage.getItem('crm_manual_move_info_dismissed');
+    if (!dismissed) {
+      setShowManualMoveModal(true);
+    }
   };
 
   const handleDragEnd = () => {
@@ -210,6 +217,11 @@ export default function KanbanBoard({
           💡 Para melhor experiência, visualize no computador
         </p>
       </div>
+
+      <ManualMoveInfoModal
+        isOpen={showManualMoveModal}
+        onClose={() => setShowManualMoveModal(false)}
+      />
     </div>
   );
 }
