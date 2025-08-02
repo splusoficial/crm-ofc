@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, LogOut, Settings } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import KanbanIcon from './components/crm/icons/KanbanIcon';
 
 // Componente SidebarToggleIcon (agora importado diretamente)
@@ -37,6 +37,9 @@ export default function Layout({ children }) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const router = useRouter();
+
+  // URL do sistema principal vinda da env var
+  const mainSystemUrl = process.env.NEXT_PUBLIC_MAIN_SYSTEM_URL || 'https://web.secretariaplus.com.br';
 
   useEffect(() => {
   console.log('=== Layout montado ===');
@@ -85,13 +88,14 @@ export default function Layout({ children }) {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setLoggedUser(null);
-    router.push('/');
+    // Redireciona para o sistema principal usando a env var
+    window.location.href = mainSystemUrl;
   };
 
   const navigationItems = [
     {
       title: 'Voltar ao Sistema',
-      action: () => window.location.href = 'https://web.secretariaplus.com.br',
+      action: () => window.location.href = mainSystemUrl,
       icon: ArrowLeft
     },
     { title: 'CRM', url: createPageUrl('crm'), icon: KanbanIcon }
@@ -245,29 +249,20 @@ export default function Layout({ children }) {
             {loggedUser && (
               <UserCard user={loggedUser} isCollapsed={isCollapsed} />
             )}
-          {isUserMenuOpen && loggedUser && !isCollapsed && (
-  <div 
-    className="absolute left-0 w-full p-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50"
-    style={{ bottom: '70px' }}
-  >
-    <Link
-      href="/login"
-      className="w-full text-left py-2 px-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-2"
-    >
-      <Settings className="w-4 h-4 text-gray-500" />
-      Perfil
-    </Link>
-    <div className="border-t border-gray-200 my-2"></div>
-    <button
-      onClick={handleLogout}
-      className="w-full text-left py-2 px-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-2"
-    >
-      <LogOut className="w-4 h-4 text-gray-500" />
-      Sair
-    </button>
-  </div>
-)}
-
+            {isUserMenuOpen && loggedUser && !isCollapsed && (
+              <div 
+                className="absolute left-0 w-full p-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50"
+                style={{ bottom: '70px' }}
+              >
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left py-2 px-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4 text-gray-500" />
+                  Sair
+                </button>
+              </div>
+            )}
           </div>
         </aside>
 

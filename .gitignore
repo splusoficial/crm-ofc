@@ -31,4 +31,5 @@ coverage/
 # Ignorar telas de login e register
 pages/login.js
 pages/register.js
+pages/index.js
 
