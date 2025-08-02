@@ -125,8 +125,12 @@ export default function KanbanBoard({
           return (
             <React.Fragment key={column.id}>
               <div
-                className={`flex-shrink-0 w-80 bg-gray-50 rounded-xl border-2 transition-all duration-200 ${
-                  isDragOver ? 'shadow-lg border-[#E6C39C]' : 'border-transparent'
+                className={`flex-shrink-0 w-80 rounded-xl transition-all duration-200 ${
+                  isDragOver 
+                    ? 'shadow-lg border-[1px] border-[#E7C29C]' 
+                    : column.isAI 
+                      ? 'bg-gray-50 border-transparent' 
+                      : 'border-[1px] border-[#E7C29C] h-max' // Estilo para colunas manuais
                 }`}
                 onDragOver={(e) => handleDragOver(e, column.id)}
                 onDragLeave={handleDragLeave}

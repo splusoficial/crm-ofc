@@ -88,15 +88,20 @@ export default function CRM() {
     }
   };
 
-  const checkFirstVisit = () => {
-    if (typeof window !== 'undefined') {
-      const hasVisited = localStorage.getItem('crm_visited_v2');
-      if (!hasVisited) {
-        setShowOnboarding(true);
-        localStorage.setItem('crm_visited_v2', 'true');
-      }
-    }
-  };
+  // SUBSTITUA o useEffect do onboarding (linhas ~75-90) por:
+  useEffect(() => {
+    // SEMPRE mostra o modal quando entra no CRM, a menos que tenha sido dismissado
+    const isDismissed = localStorage.getItem('crm_onboarding_dismissed') === 'true';
+    console.log('🎯 Modal dismissado?', isDismissed);
+    setShowOnboarding(!isDismissed);
+  }, []); // Só roda uma vez quando o componente monta
+
+  useEffect(() => {
+    console.log('🔍 Status do onboarding:', {
+      isDismissed: localStorage.getItem('crm_onboarding_dismissed'),
+      showOnboarding
+    });
+  }, [showOnboarding]);
 
   const filterLeads = () => {
     let filtered = [...leads];
@@ -377,6 +382,8 @@ export default function CRM() {
       // Força atualização do Layout
       window.dispatchEvent(new Event('userUpdated'));
       
+      router.push('/crm'); // Força reconhecimento como novo usuário
+
       await loadLeads(email);
     } catch (err) {
       console.error('❌ Erro no magic login:', err);
