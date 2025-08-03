@@ -392,7 +392,7 @@ export default function CRM() {
       };
 
       localStorage.setItem('user', JSON.stringify(userSession));
-      console.log('✅ Usuário salvo no localStorage:', userSession);
+      console.log('✅ Usuário salvo no localStorage: ', userSession);
 
       window.dispatchEvent(new Event('userUpdated'));
       router.push('/crm');
