@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { X, Phone, Calendar, FileText, User, AlertCircle, MessageSquare, History, Plus, Copy, Check } from 'lucide-react';
+import { X, Phone, Sparkles, Calendar, FileText, User, AlertCircle, MessageSquare, History, Plus, Copy, Check } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -21,6 +22,20 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
     if (lead) setEditedLead(lead);
   }, [lead]);
 
+  useEffect(() => {
+    if (isOpen) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setCurrentUser(parsedUser);
+        } catch (error) {
+          console.error('Erro ao parsear usuário:', error);
+        }
+      }
+    }
+  }, [isOpen]);
+
   if (!isOpen || !lead) return null;
 
   const handleSave = async () => {
@@ -38,7 +53,7 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
           data_hora: new Date().toISOString(),
           status_anterior: lead.status,
           status_novo: editedLead.status,
-          usuario: 'Usuário'
+          usuario: user.name
         }
       ];
     }
@@ -74,11 +89,13 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
   const handleAddObservacao = async () => {
     if (!novaObservacao.trim()) return;
 
+    const usuarioNome = currentUser?.name || currentUser?.email || 'Usuário';
+
     const novaAtividade = {
       tipo: 'observacao_manual',
       data_hora: new Date().toISOString(),
       observacao: novaObservacao,
-      usuario: 'Usuário'
+      usuario: usuarioNome
     };
 
     const novoHistorico = [
@@ -173,23 +190,8 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
             </div>
           </div>
 
-          {/* Data de Criação */}
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Data de Criação
-            </h4>
-            <p className="text-sm text-gray-600 bg-white p-3 rounded-lg">
-              {lead.created_at ? (
-                format(parseISO(lead.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-              ) : (
-                "Data não disponível"
-              )}
-            </p>
-          </div>
-
           {/* WhatsApp */}
-          <div>
+          <div className='mb-6'>
             <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
               <Phone className="w-4 h-4" />
               WhatsApp
@@ -220,19 +222,48 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
                   <button
                     onClick={() => openWhatsApp(lead.whatsapp)}
                     className="p-2 hover:bg-green-50 rounded-lg transition-colors"
-                    title="Abrir no WhatsApp">
-
+                    title="Abrir no WhatsApp"
+                  >
                     <img
                       src="https://img.icons8.com/?size=256&id=85088&format=png"
                       alt="WhatsApp"
-                      className="w-4 h-4" />
-
+                      className="w-4 h-4"
+                    />
                   </button>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Notas feitas pela IA */}
+          {lead.notes && (
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Notas feitas pela IA
+              </h4>
+              <div className="text-sm text-gray-600 bg-white p-3 rounded-lg whitespace-pre-line">
+                {lead.notes || <span className="italic text-gray-400">Nenhuma nota registrada</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Data de Criação */}
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Data de Criação
+            </h4>
+            <p className="text-sm text-gray-600 bg-white p-3 rounded-lg">
+              {lead.created_at ? (
+                format(parseISO(lead.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+              ) : (
+                "Data não disponível"
+              )}
+            </p>
+          </div>
         </div>
+
 
         {/* Conteúdo Principal */}
         <div className="flex-1 flex flex-col">

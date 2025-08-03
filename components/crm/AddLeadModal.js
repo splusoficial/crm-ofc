@@ -1,16 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import ReactInputMask from 'react-input-mask';
 
 // Defina as opções de status aqui
 const statusOptions = [
-  { value: 'new_conversation', label: 'Nova conversa' },
-  { value: 'interested_lead', label: 'Interessado' },
-  { value: 'appointment_scheduled', label: 'Agendou Consulta' },
-  { value: 'appointment_attended', label: 'Compareceu Consulta' },
+  { value: 'new_conversation', label: 'Nova Conversa' },
+  { value: 'interested_lead', label: 'Lead Interessado' },
+  { value: 'appointment_scheduled', label: 'Agendado' },
+  { value: 'cancelled', label: 'Cancelou' },
+  { value: 'rescheduled', label: 'Reagendou' },
+  { value: 'appointment_attended', label: 'Compareceu' },
   { value: 'procedure_sold', label: 'Vendeu Procedimento' },
-  { value: 'no_show', label: 'Não compareceu' },
-  { value: 'lost', label: 'Perdido' }
+  { value: 'relationship', label: 'Relacionamento' }
 ];
+
+
+// Função de formatação: recebe string só com números!
+function formatBRL(value) {
+  if (!value) return 'R$ 0,00';
+  value = value.replace(/\D/g, '');
+  if (!value) return 'R$ 0,00';
+  value = (parseInt(value, 10) / 100).toFixed(2) + '';
+  value = value.replace('.', ',');
+  value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return 'R$ ' + value;
+}
+
+// Converte para float no submit (ex: "123456" => 1234.56)
+function parseCentavosToFloat(str) {
+  if (!str) return 0;
+  return parseInt(str.replace(/\D/g, ''), 10) / 100;
+}
 
 export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
   const [user, setUser] = useState(null);
@@ -51,55 +71,61 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🔍 DEBUG - verificando dados do usuário
-    console.log('=== DEBUG AUTENTICAÇÃO CUSTOMIZADA ===');
-    console.log('User from localStorage:', user);
-    console.log('User email:', user?.email);
-    console.log('User authenticated:', !!user?.email);
-
     if (!user || !user.email) {
       alert('Usuário não autenticado. Faça login novamente.');
       return;
     }
 
+    // Monta o array de atividades
+    const activities = [
+      {
+        tipo: 'observacao_manual',
+        usuario: user.name,
+        data_hora: new Date().toISOString(),
+        observacao: 'Lead criado manualmente no sistema'
+      }
+    ];
+
+    // Se houver observação, adiciona como outra atividade
+    if (form.notes && form.notes.trim().length > 0) {
+      activities.push({
+        tipo: 'observacao_manual',
+        usuario: user.name,
+        data_hora: new Date().toISOString(),
+        observacao: form.notes.trim()
+      });
+    }
+
     try {
-      // 📊 Monta o objeto para inserção
+      // Monta o objeto para inserção
       const leadData = {
         ...form,
         owner_email: user.email,
         wh_id: user.wh_id || null,
-        estimated_value: form.estimated_value ? parseFloat(form.estimated_value) : null,
-        activity_history: [
-          {
-            tipo: 'observacao_manual',
-            usuario: user.email,
-            data_hora: new Date().toISOString(),
-            observacao: 'Lead criado manualmente no sistema'
-          }
-        ]
+        estimated_value: parseCentavosToFloat(form.estimated_value),
+        activity_history: activities
       };
+
+      // Não salva a propriedade notes diretamente no lead!
+      delete leadData.notes;
 
       console.log('📝 Dados para inserção:', leadData);
 
-      // 🚀 Inserção no Supabase
+      // Inserção no Supabase
       const { data, error } = await supabase
         .from('leads')
         .insert([leadData])
-        .select(); // Importante: select() para retornar os dados inseridos
+        .select();
 
       if (error) {
         console.error('❌ Erro do Supabase:', error);
         throw error;
       }
 
-      console.log('✅ Lead inserido com sucesso:', data);
-
-      // Chama callback com o lead criado
       if (onSubmit && data && data[0]) {
         onSubmit(data[0]);
       }
 
-      // Redireciona para /crm e força reload da página
       window.location.href = '/crm';
 
     } catch (error) {
@@ -133,14 +159,22 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               WhatsApp *
             </label>
-            <input
+            <ReactInputMask
+              mask="(99) 99999-9999"
+              maskChar={null}
               name="whatsapp"
               value={form.whatsapp}
               onChange={handleChange}
               required
-              placeholder="(11) 99999-9999"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#C2946D] focus:border-transparent"
-            />
+            >
+              {(inputProps) => (
+                <input
+                  {...inputProps}
+                  placeholder="(11) 99999-9999"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#C2946D] focus:border-transparent"
+                />
+              )}
+            </ReactInputMask>
           </div>
 
           <div>
@@ -161,12 +195,16 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
             </label>
             <input
               name="estimated_value"
-              type="number"
-              step="0.01"
-              value={form.estimated_value}
-              onChange={handleChange}
-              placeholder="0.00"
+              type="text"
+              inputMode="numeric"
+              value={formatBRL(form.estimated_value)}
+              onChange={e => {
+                const onlyNums = e.target.value.replace(/\D/g, '');
+                setForm(prev => ({ ...prev, estimated_value: onlyNums }));
+              }}
+              placeholder="R$ 0,00"
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#C2946D] focus:border-transparent"
+              maxLength={15}
             />
           </div>
 
