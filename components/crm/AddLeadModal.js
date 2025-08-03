@@ -50,13 +50,13 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // 🔍 DEBUG - verificando dados do usuário
     console.log('=== DEBUG AUTENTICAÇÃO CUSTOMIZADA ===');
     console.log('User from localStorage:', user);
     console.log('User email:', user?.email);
     console.log('User authenticated:', !!user?.email);
-    
+
     if (!user || !user.email) {
       alert('Usuário não autenticado. Faça login novamente.');
       return;
@@ -67,14 +67,14 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
       const leadData = {
         ...form,
         owner_email: user.email,
-        wh_id: user.wh_id || null, // Pega do localStorage
+        wh_id: user.wh_id || null,
         estimated_value: form.estimated_value ? parseFloat(form.estimated_value) : null,
         activity_history: [
           {
-            type: 'lead_created',
-            description: 'Lead criado manualmente no sistema',
-            timestamp: new Date().toISOString(),
-            user_email: user.email
+            tipo: 'observacao_manual',
+            usuario: user.email,
+            data_hora: new Date().toISOString(),
+            observacao: 'Lead criado manualmente no sistema'
           }
         ]
       };
@@ -93,12 +93,12 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
       }
 
       console.log('✅ Lead inserido com sucesso:', data);
-      
+
       // Chama callback com o lead criado
       if (onSubmit && data && data[0]) {
         onSubmit(data[0]);
       }
-      
+
       // Redireciona para /crm e força reload da página
       window.location.href = '/crm';
 
@@ -114,7 +114,7 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
     <div className="fixed inset-0 bg-black bg-opacity-[0.7] flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-lg w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-6 text-gray-900">Adicionar Lead</h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
