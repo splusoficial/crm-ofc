@@ -115,15 +115,6 @@ export default function AddLeadModal({ isOpen, onClose, onSubmit }) {
       <div className="bg-white rounded-xl max-w-lg w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-6 text-gray-900">Adicionar Lead</h2>
         
-        {/* Mostra info do usuário autenticado */}
-        {user && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-700">
-              ✅ Logado como: <strong>{user.name || user.email}</strong>
-            </p>
-          </div>
-        )}
-        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
