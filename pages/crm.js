@@ -367,24 +367,35 @@ export default function CRM() {
   const handleMagicLogin = async (email) => {
     try {
       console.log('🔍 Magic login iniciado para:', email);
-      
-      // CORRIGE O OBJETO - estava salvando objeto genérico
-      const userData = {
-        email, // ← Este é o campo que estava faltando!
-        name: 'Usuário', // Pode vir do JWT se disponível
+
+      // Busca o usuário completo na tabela user
+      const { data: userData, error } = await supabase
+        .from('user')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error || !userData) {
+        console.error('Erro ao buscar usuário para magic login:', error || 'Usuário não encontrado');
+        alert('Erro ao buscar dados do usuário. Faça login novamente.');
+        return;
+      }
+
+      // Salva o objeto completo no localStorage, incluindo wh_id
+      const userSession = {
+        email: userData.email,
+        name: userData.name || 'Usuário',
+        wh_id: userData.wh_id, // <-- campo essencial para filtro de leads
         loginMethod: 'magic_verified',
         timestamp: new Date().toISOString(),
         isAuthenticated: true
       };
 
-      // Salva o usuário correto no localStorage
-      localStorage.setItem('user', JSON.stringify(userData));
-      console.log('✅ Usuário salvo no localStorage:', userData);
+      localStorage.setItem('user', JSON.stringify(userSession));
+      console.log('✅ Usuário salvo no localStorage:', userSession);
 
-      // Força atualização do Layout
       window.dispatchEvent(new Event('userUpdated'));
-      
-      router.push('/crm'); // Força reconhecimento como novo usuário
+      router.push('/crm');
 
       await loadLeads(email);
     } catch (err) {

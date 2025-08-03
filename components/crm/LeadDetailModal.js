@@ -413,7 +413,9 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
                   </div>
                 ) : (
                   historico
-                    .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora))
+                    .sort((a, b) =>
+                      new Date(b.data_hora || b.timestamp) - new Date(a.data_hora || a.timestamp)
+                    )
                     .map((atividade, index) => (
                       <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
                         <div className="flex items-start justify-between mb-2">
@@ -432,7 +434,9 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
                             </span>
                           </div>
                           <span className="text-xs text-gray-500">
-                            {format(new Date(atividade.data_hora), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                            {(atividade.data_hora || atividade.timestamp)
+                              ? format(new Date(atividade.data_hora || atividade.timestamp), "dd/MM 'às' HH:mm", { locale: ptBR })
+                              : '—'}
                           </span>
                         </div>
 
