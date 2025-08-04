@@ -1,7 +1,26 @@
 import React from 'react';
-import { Phone, Calendar, DollarSign, AlertCircle, Sparkles } from 'lucide-react';
+import { Phone, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+// Mapeamento de status simplificado (sem cores)
+const statusMap = {
+  new_conversation:       { label: 'Nova Conversa' },
+  interested_lead:        { label: 'Lead Interessado' },
+  appointment_scheduled:  { label: 'Agendado' },
+  cancelled:              { label: 'Cancelou' },
+  rescheduled:            { label: 'Reagendou' },
+  appointment_attended:   { label: 'Compareceu' },
+  procedure_sold:         { label: 'Vendeu Procedimento' },
+  relationship:           { label: 'Relacionamento' },
+  scheduled:              { label: 'Agendado' },
+  attended:               { label: 'Compareceu' },
+  sold_procedure:         { label: 'Vendeu Procedimento' },
+  showed_up:              { label: 'Compareceu' },
+  contacted:              { label: 'Contactado' }
+};
+
+const getStatusInfo = (status) => statusMap[status] || { label: status };
 
 export default function ListView({ 
   leads, 
@@ -9,20 +28,6 @@ export default function ListView({
   selectedLeads, 
   onSelectLead 
 }) {
-  const getStatusInfo = (status) => {
-    const statusMap = {
-      nova_conversa: { label: 'Nova Conversa', color: 'bg-blue-100 text-blue-800', isAI: true },
-      lead_interessado: { label: 'Lead Interessado', color: 'bg-green-100 text-green-800', isAI: true },
-      agendado: { label: 'Agendado', color: 'bg-purple-100 text-purple-800', isAI: true },
-      cancelou: { label: 'Cancelou', color: 'bg-red-100 text-red-800', isAI: true },
-      reagendou: { label: 'Reagendou', color: 'bg-yellow-100 text-yellow-800', isAI: true },
-      compareceu: { label: 'Compareceu', color: 'bg-indigo-100 text-indigo-800', isAI: false },
-      vendeu_procedimento: { label: 'Vendeu', color: 'bg-emerald-100 text-emerald-800', isAI: false },
-      relacionamento: { label: 'Relacionamento', color: 'bg-amber-100 text-amber-800', isAI: false }
-    };
-    return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800', isAI: false };
-  };
-
   const getPriorityIcon = (priority) => {
     if (priority === 'alta') {
       return <AlertCircle className="w-4 h-4 text-red-500" />;
@@ -104,8 +109,7 @@ export default function ListView({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                      {statusInfo.isAI && <Sparkles className="w-3 h-3 mr-1" />}
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium">
                       {statusInfo.label}
                     </span>
                   </td>

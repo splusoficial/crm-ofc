@@ -84,7 +84,7 @@ export default function FilterBar(props) {
                 sm:w-auto   
                 bg-white 
                 text-[#C2946D] 
-                text-xs 
+                text-xs
                 border 
                 border-[#C2946D]
                 cursor-pointer 

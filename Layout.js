@@ -251,8 +251,9 @@ export default function Layout({ children }) {
             ))}
           </nav>
 
+          {/* Sidebar desktop */}
           <div className="p-3 relative flex-shrink-0" ref={userMenuRef}>
-            {loggedUser && (
+            {loggedUser && !isCollapsed && (
               <UserCard user={loggedUser} isCollapsed={isCollapsed} />
             )}
             {isUserMenuOpen && loggedUser && !isCollapsed && (
@@ -320,11 +321,12 @@ export default function Layout({ children }) {
                 ))}
               </nav>
 
+              {/* Sidebar mobile */}
               <div className="p-3 relative flex-shrink-0" ref={userMenuRef}>
                 {loggedUser && (
                   <UserCard user={loggedUser} isCollapsed={isCollapsed} />
                 )}
-                {isUserMenuOpen && loggedUser && !isCollapsed && (
+                {isUserMenuOpen && loggedUser && (
                   <div
                     className="absolute left-0 w-full p-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50"
                     style={{ bottom: '70px' }}
