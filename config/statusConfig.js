@@ -49,7 +49,7 @@ export const statusConfig = {
   },
   others: {
     id: 'others',
-    label: 'Outros/Fornecedores',
+    label: 'Fornecedores / Outros',
     isAI: false,
     order: 9
   }
