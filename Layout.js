@@ -35,6 +35,7 @@ export default function Layout({ children }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [loggedUser, setLoggedUser] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const userMenuRef = useRef(null);
   const router = useRouter();
 
@@ -42,40 +43,40 @@ export default function Layout({ children }) {
   const mainSystemUrl = process.env.NEXT_PUBLIC_MAIN_SYSTEM_URL || 'https://web.secretariaplus.com.br';
 
   useEffect(() => {
-  console.log('=== Layout montado ===');
-  loadUserFromStorage();
-
-  const handleUserUpdate = () => {
-    console.log('🔄 Layout recebeu evento userUpdated');
+    console.log('=== Layout montado ===');
     loadUserFromStorage();
-  };
 
-  window.addEventListener('userUpdated', handleUserUpdate);
+    const handleUserUpdate = () => {
+      console.log('🔄 Layout recebeu evento userUpdated');
+      loadUserFromStorage();
+    };
 
-  return () => {
-    window.removeEventListener('userUpdated', handleUserUpdate);
-  };
-}, []);
+    window.addEventListener('userUpdated', handleUserUpdate);
+
+    return () => {
+      window.removeEventListener('userUpdated', handleUserUpdate);
+    };
+  }, []);
 
 
   const loadUserFromStorage = () => {
     try {
       const storedUserString = localStorage.getItem('user') || '{}';
       console.log('🔍 Raw localStorage:', storedUserString); // ← Adiciona este log
-    
+
       const storedUser = JSON.parse(storedUserString);
       console.log('🔍 Parsed user object:', storedUser);
       console.log('🔍 User email:', storedUser?.email);
       console.log('🔍 User isAuthenticated:', storedUser?.isAuthenticated);
-      
+
       if (storedUser?.email) {
         console.log('✅ Layout encontrou usuário válido:', storedUser.email);
-        
+
         if (!storedUser.isAuthenticated) {
           storedUser.isAuthenticated = true;
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
-        
+
         setLoggedUser(storedUser);
       } else {
         console.log('❌ Layout não encontrou email válido - objeto:', storedUser);
@@ -129,7 +130,7 @@ export default function Layout({ children }) {
       </div>
     );
   };
-  
+
   const UserCard = ({ user, isCollapsed }) => {
     if (!user) return null;
     return (
@@ -150,10 +151,13 @@ export default function Layout({ children }) {
       </div>
     );
   };
-  
+
   if (router.pathname === createPageUrl('Welcome')) {
     return children;
   }
+
+  // Função para abrir/fechar sidebar no mobile
+  const handleMobileSidebar = () => setIsMobileSidebarOpen((v) => !v);
 
   return (
     <>
@@ -221,10 +225,12 @@ export default function Layout({ children }) {
         }
       `}</style>
       <div className="flex text-gray-800 overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif", height: '100vh' }}>
+        {/* Sidebar para desktop */}
         <aside
-          className={`flex flex-col bg-white transition-all duration-300 ease-in-out border-r border-[#E1E1E2] ${
-            isCollapsed ? 'w-20' : 'w-64'
-          }`}
+          className={`
+            hidden md:flex flex-col bg-white transition-all duration-300 ease-in-out border-r border-[#E1E1E2]
+            ${isCollapsed ? 'w-20' : 'w-64'}
+          `}
           style={{ height: '100vh', overflowX: 'hidden' }}
         >
           <div className="flex items-center h-20 px-4 flex-shrink-0">
@@ -250,7 +256,7 @@ export default function Layout({ children }) {
               <UserCard user={loggedUser} isCollapsed={isCollapsed} />
             )}
             {isUserMenuOpen && loggedUser && !isCollapsed && (
-              <div 
+              <div
                 className="absolute left-0 w-full p-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50"
                 style={{ bottom: '70px' }}
               >
@@ -266,8 +272,90 @@ export default function Layout({ children }) {
           </div>
         </aside>
 
+        {/* Sidebar para mobile */}
+        {isMobileSidebarOpen && (
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-40 flex md:hidden"
+            onClick={handleMobileSidebar}
+          >
+            <aside
+              className="bg-white w-full h-full shadow-2xl flex flex-col relative"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Botão X fixo no topo */}
+              <button
+                onClick={handleMobileSidebar}
+                style={{ paddingLeft: '85%' }}
+                className="absolute top-4 right-4 p-6 rounded-md hover:bg-gray-200 transition-colors"
+                aria-label="Fechar menu"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+
+              <div className="flex items-center h-20 px-4 flex-shrink-0">
+                <img
+                  src={
+                    isCollapsed
+                      ? 'https://web.secretariaplus.com.br/media/logo-col.svg'
+                      : 'https://web.secretariaplus.com.br/media/logo-blk.svg'
+                  }
+                  alt="Logo"
+                  className="h-10 transition-all duration-300"
+                />
+              </div>
+
+              <nav className="flex-1 py-4 nav-item-container">
+                {navigationItems.map((item) => (
+                  <NavItem key={item.title} item={item} />
+                ))}
+              </nav>
+
+              <div className="p-3 relative flex-shrink-0" ref={userMenuRef}>
+                {loggedUser && (
+                  <UserCard user={loggedUser} isCollapsed={isCollapsed} />
+                )}
+                {isUserMenuOpen && loggedUser && !isCollapsed && (
+                  <div
+                    className="absolute left-0 w-full p-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50"
+                    style={{ bottom: '70px' }}
+                  >
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left py-2 px-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4 text-gray-500" />
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </div>
+            </aside>
+          </div>
+        )}
+
         <main className="flex-1 flex flex-col overflow-auto">
-          <ToggleSidebarContext.Provider value={{ isCollapsed, toggleSidebar: () => setIsCollapsed(!isCollapsed) }}>
+          <ToggleSidebarContext.Provider value={{
+            isCollapsed,
+            toggleSidebar: () => {
+              if (window.innerWidth < 768) {
+                handleMobileSidebar();
+              } else {
+                setIsCollapsed(!isCollapsed);
+              }
+            },
+            isMobileSidebarOpen,
+            handleMobileSidebar
+          }}>
             {children}
           </ToggleSidebarContext.Provider>
         </main>

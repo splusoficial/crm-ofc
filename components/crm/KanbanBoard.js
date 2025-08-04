@@ -146,7 +146,7 @@ export default function KanbanBoard({
   return (
     <div className="overflow-x-auto pb-4">
       {/* Progress bar - tem que ser min-w-max igual ao conteúdo */}
-      <div className="mb-2">
+      <div className="hidden md:block mb-2">
         <div
           className="h-[3px] min-w-max rounded-full"
           style={progressBarStyle}
@@ -158,6 +158,7 @@ export default function KanbanBoard({
           </div>
         </div>
       </div>
+
 
       {/* Kanban columns */}
       <div className="flex gap-4 min-w-max">
@@ -186,7 +187,7 @@ export default function KanbanBoard({
           return (
             <React.Fragment key={column.id}>
               <div
-                className={`flex-shrink-0 w-80 rounded-xl transition-all duration-200 ${isDragOver
+                className={`flex-shrink-0 w-[17%] sm:w-80 rounded-xl transition-all duration-200 ${isDragOver
                   ? 'shadow-lg border-[1px] border-[#E7C29C]'
                   : column.isAI
                     ? 'bg-gray-50 border-transparent border-t-4 border-[#C2946D]'
@@ -262,9 +263,9 @@ export default function KanbanBoard({
       </div>
 
       {/* Mobile Warning */}
-      <div className="lg:hidden mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-700 text-center">
-          💡 Para melhor experiência, visualize no computador
+      <div className="lg:hidden mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <p className="text-sm text-center">
+          Para melhor experiência, visualize no computador
         </p>
       </div>
 
