@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { X, Phone, Sparkles, Calendar, FileText, User, AlertCircle, MessageSquare, History, Plus, Copy, Check } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { getStatusInfo, getStatusOptions } from '@/config/statusConfig';
+import StatusBadge from './StatusBadge';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -59,7 +61,6 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
       .update({
         status: editedLead.status,
         priority: editedLead.priority,
-        last_contact_date: editedLead.last_contact_date,
         interest_procedure: editedLead.interest_procedure,
         estimated_value: editedLead.estimated_value,
         source: editedLead.source,
@@ -130,21 +131,6 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
     } catch {
       console.error('Erro ao copiar número');
     }
-  };
-
-  const getStatusInfo = (status) => {
-    const statusMap = {
-      new_conversation: { label: 'Nova Conversa', color: 'bg-blue-100 text-blue-800' },
-      interested_lead: { label: 'Lead Interessado', color: 'bg-green-100 text-green-800' },
-      scheduled: { label: 'Agendado', color: 'bg-purple-100 text-purple-800' },
-      cancelled: { label: 'Cancelou', color: 'bg-red-100 text-red-800' },
-      rescheduled: { label: 'Reagendou', color: 'bg-yellow-100 text-yellow-800' },
-      showed_up: { label: 'Compareceu', color: 'bg-indigo-100 text-indigo-800' },
-      sold_procedure: { label: 'Vendeu Procedimento', color: 'bg-emerald-100 text-emerald-800' },
-      relationship: { label: 'Relacionamento', color: 'bg-amber-100 text-amber-800' }
-    };
-    const info = statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' };
-    return { ...info, isAI: Object.keys(statusMap).includes(status) };
   };
 
   const getPriorityInfo = (priority) => {
@@ -416,14 +402,11 @@ export default function LeadDetailModal({ lead, isOpen, onClose, onUpdate }) {
                       onChange={(e) => setEditedLead({ ...editedLead, status: e.target.value })}
                       className="w-full px-3 py-3 lg:py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 touch-target"
                     >
-                      <option value="new_conversation">Nova Conversa</option>
-                      <option value="interested_lead">Lead Interessado</option>
-                      <option value="scheduled">Agendado</option>
-                      <option value="cancelled">Cancelou</option>
-                      <option value="rescheduled">Reagendou</option>
-                      <option value="showed_up">Compareceu</option>
-                      <option value="sold_procedure">Vendeu Procedimento</option>
-                      <option value="relationship">Relacionamento</option>
+                      {getStatusOptions().map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

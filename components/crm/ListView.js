@@ -3,24 +3,8 @@ import { Phone, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-// Mapeamento de status simplificado (sem cores)
-const statusMap = {
-  new_conversation:       { label: 'Nova Conversa' },
-  interested_lead:        { label: 'Lead Interessado' },
-  appointment_scheduled:  { label: 'Agendado' },
-  cancelled:              { label: 'Cancelou' },
-  rescheduled:            { label: 'Reagendou' },
-  appointment_attended:   { label: 'Compareceu' },
-  procedure_sold:         { label: 'Vendeu Procedimento' },
-  relationship:           { label: 'Relacionamento' },
-  scheduled:              { label: 'Agendado' },
-  attended:               { label: 'Compareceu' },
-  sold_procedure:         { label: 'Vendeu Procedimento' },
-  showed_up:              { label: 'Compareceu' },
-  contacted:              { label: 'Contactado' }
-};
-
-const getStatusInfo = (status) => statusMap[status] || { label: status };
+// IMPORTA A FUNÇÃO DINÂMICA
+import { getStatusInfo } from '@/config/statusConfig';
 
 export default function ListView({ 
   leads, 
@@ -72,6 +56,7 @@ export default function ListView({
           </thead>
           <tbody className="divide-y divide-gray-200">
             {leads.map((lead) => {
+              // PEGA LABEL DINAMICAMENTE
               const statusInfo = getStatusInfo(lead.status);
               
               return (

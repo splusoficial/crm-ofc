@@ -8,6 +8,7 @@ import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
 import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
 import ChevronUp from 'lucide-react/dist/esm/icons/chevron-up';
+import { getStatusOptions } from '@/config/statusConfig';
 
 function MaisOpcoesToggle({ show, setShow }) {
   return (
@@ -130,7 +131,7 @@ export default function FilterBar(props) {
                   onChange={(e) => setPriorityFilter(e.target.value)}
                   className="pl-10 pr-8 h-10 w-40 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
                 >
-                  <option value="all">Todas</option>
+                  <option value="">Todas</option>
                   <option value="high">Alta</option>
                   <option value="medium">Média</option>
                   <option value="low">Baixa</option>
@@ -158,14 +159,11 @@ export default function FilterBar(props) {
                     className="pl-10 pr-8 h-10 w-48 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
                   >
                     <option value="">{`Mover ${selectedLeads.length} leads`}</option>
-                    <option value="new_conversation">Nova Conversa</option>
-                    <option value="interested_lead">Lead Interessado</option>
-                    <option value="scheduled">Agendado</option>
-                    <option value="cancelled">Cancelou</option>
-                    <option value="rescheduled">Reagendou</option>
-                    <option value="showed_up">Compareceu</option>
-                    <option value="sold_procedure">Vendeu Procedimento</option>
-                    <option value="relationship">Relacionamento</option>
+                    {getStatusOptions().map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -19,7 +19,7 @@ export default function CRM() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [viewMode, setViewMode] = useState('kanban');
   const [searchTerm, setSearchTerm] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('todas');
+  const [priorityFilter, setPriorityFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showAddLead, setShowAddLead] = useState(false);
 
@@ -41,8 +41,6 @@ export default function CRM() {
   const loadLeads = async (email) => {
     setIsLoading(true);
     try {
-      console.log('Carregando leads para:', email);
-
       const { data: userData, error: userError } = await supabase
         .from('user')
         .select('*')
@@ -90,20 +88,10 @@ export default function CRM() {
     }
   };
 
-  // SUBSTITUA o useEffect do onboarding (linhas ~75-90) por:
   useEffect(() => {
-    // SEMPRE mostra o modal quando entra no CRM, a menos que tenha sido dismissado
     const isDismissed = localStorage.getItem('crm_onboarding_dismissed') === 'true';
-    console.log('🎯 Modal dismissado?', isDismissed);
     setShowOnboarding(!isDismissed);
-  }, []); // Só roda uma vez quando o componente monta
-
-  useEffect(() => {
-    console.log('🔍 Status do onboarding:', {
-      isDismissed: localStorage.getItem('crm_onboarding_dismissed'),
-      showOnboarding
-    });
-  }, [showOnboarding]);
+  }, []);
 
   const filterLeads = () => {
     let filtered = [...leads];
@@ -117,7 +105,7 @@ export default function CRM() {
       );
     }
 
-    if (priorityFilter !== 'todas') {
+    if (priorityFilter) {
       filtered = filtered.filter((lead) => lead.prioridade === priorityFilter);
     }
 
@@ -178,11 +166,7 @@ export default function CRM() {
   };
 
   const handleMoveLeads = async (leadData, newStatus) => {
-    console.log('handleMoveLeads chamado com:', leadData, newStatus);
-    
-    // Se leadData for um array de IDs (bulk move), mantém a lógica atual
     if (Array.isArray(leadData)) {
-      console.log('Bulk move detectado');
       try {
         const updatedLeads = await Promise.all(
           leads.map(async (lead) => {
@@ -230,17 +214,10 @@ export default function CRM() {
       return;
     }
 
-    // Se leadData for um objeto (drag and drop individual), nova lógica
     if (typeof leadData === 'object' && leadData.id) {
-      console.log('Drag and drop individual detectado');
-      
-      if (leadData.status === newStatus) {
-        console.log('Lead já está no status correto');
-        return;
-      }
+      if (leadData.status === newStatus) return;
 
       try {
-        // Cria nova atividade para o histórico
         const novaAtividade = {
           tipo: 'mudanca_status',
           data_hora: new Date().toISOString(),
@@ -251,7 +228,6 @@ export default function CRM() {
 
         const historico = [...(leadData.historico_atividades || []), novaAtividade];
 
-        // 1. Atualiza no Supabase
         const { error: updateError } = await supabase
           .from('leads')
           .update({
@@ -261,29 +237,8 @@ export default function CRM() {
           })
           .eq('id', leadData.id);
 
-        if (updateError) {
-          console.error('Erro ao atualizar lead no Supabase:', updateError);
-          throw updateError;
-        }
+        if (updateError) throw updateError;
 
-        // 2. Registra no histórico separado (se você tiver essa tabela)
-        // Descomente se você criar a tabela lead_status_history
-        /*
-        const { error: historyError } = await supabase
-          .from('lead_status_history')
-          .insert([{
-            lead_id: leadData.id,
-            from_status: leadData.status,
-            to_status: newStatus,
-            moved_at: new Date().toISOString(),
-          }]);
-
-        if (historyError) {
-          console.error('Erro ao registrar histórico:', historyError);
-        }
-        */
-
-        // 3. Atualiza o estado local
         const leadAtualizado = {
           ...leadData,
           status: newStatus,
@@ -297,12 +252,8 @@ export default function CRM() {
           )
         );
 
-        console.log('Lead movido com sucesso via drag and drop!');
-
       } catch (error) {
         console.error('Erro ao mover lead via drag and drop:', error);
-        // Aqui você pode adicionar uma notificação de erro para o usuário
-        // toast.error('Erro ao mover lead. Tente novamente.');
       }
       return;
     }
@@ -366,9 +317,6 @@ export default function CRM() {
 
   const handleMagicLogin = async (email) => {
     try {
-      console.log('🔍 Magic login iniciado para:', email);
-
-      // Busca o usuário completo na tabela user
       const { data: userData, error } = await supabase
         .from('user')
         .select('*')
@@ -376,24 +324,20 @@ export default function CRM() {
         .maybeSingle();
 
       if (error || !userData) {
-        console.error('Erro ao buscar usuário para magic login:', error || 'Usuário não encontrado');
         alert('Erro ao buscar dados do usuário. Faça login novamente.');
         return;
       }
 
-      // Salva o objeto completo no localStorage, incluindo wh_id
       const userSession = {
         email: userData.email,
         name: userData.name || 'Usuário',
-        wh_id: userData.wh_id, // <-- campo essencial para filtro de leads
+        wh_id: userData.wh_id,
         loginMethod: 'magic_verified',
         timestamp: new Date().toISOString(),
         isAuthenticated: true
       };
 
       localStorage.setItem('user', JSON.stringify(userSession));
-      console.log('✅ Usuário salvo no localStorage: ', userSession);
-
       window.dispatchEvent(new Event('userUpdated'));
       router.push('/crm');
 
@@ -452,6 +396,8 @@ export default function CRM() {
               selectedLeads={selectedLeads}
               onSelectLead={handleSelectLead}
               onMoveLeads={handleMoveLeads}
+              searchTerm={searchTerm}
+              priorityFilter={priorityFilter}
             />
           ) : (
             <ListView
@@ -478,7 +424,6 @@ export default function CRM() {
             isOpen={showAddLead}
             onClose={() => setShowAddLead(false)}
             onSubmit={(newLead) => {
-              // Atualiza a lista de leads localmente
               setLeads(prev => [...prev, newLead]);
               setFilteredLeads(prev => [...prev, newLead]);
               setShowAddLead(false);
