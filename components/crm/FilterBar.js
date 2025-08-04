@@ -75,21 +75,24 @@ export default function FilterBar(props) {
             </div>
           </div>
 
-          <div>
+          <div className="w-full sm:w-auto">
             <button
               type="button"
               onClick={() => onAddLead && onAddLead()}
-              style={{
-                backgroundColor: 'white',
-                color: '#C2946D',
-                fontSize: '12px',
-                border: '1px solid #C2946D',
-                cursor: 'pointer',
-                padding: '0 16px',
-                borderRadius: '6px',
-                height: '40px',
-                fontWeight: 600,
-              }}
+              className=" 
+                w-full 
+                sm:w-auto   
+                bg-white 
+                text-[#C2946D] 
+                text-xs 
+                border 
+                border-[#C2946D]
+                cursor-pointer 
+                px-4 
+                rounded-md 
+                h-10 
+                font-semibold
+                "
             >
               + Adicionar Lead
             </button>
