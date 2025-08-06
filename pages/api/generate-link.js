@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       type: 'magiclink',
       email: email,
       options: {
-        redirectTo: `${req.headers.origin}/auth/callback`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       },
     });
 
