@@ -135,41 +135,55 @@ export default function CRM() {
   const handleMoveLeads = async (leadData, newStatus) => {
     const leadsToUpdate = Array.isArray(leadData) ? leadData : [leadData.id];
     try {
-      const updatedLeads = leads.map(lead => {
-        if (leadsToUpdate.includes(lead.id) && lead.status !== newStatus) {
-          const novaAtividade = {
-            tipo: 'mudanca_status',
-            data_hora: new Date().toISOString(),
-            status_anterior: lead.status,
-            status_novo: newStatus,
-            usuario: 'Usuário'
-          };
-          const historico = [...(lead.historico_atividades || []), novaAtividade];
+      // Aqui vamos atualizar cada lead um por um
+      for (const leadId of leadsToUpdate) {
+        const lead = leads.find(l => l.id === leadId);
+        if (!lead) continue;
+        if (lead.status === newStatus) continue;
 
-          supabase.from('leads').update({
-            status: newStatus,
-            activity_history: historico,
-            updated_at: new Date().toISOString()
-          }).eq('id', lead.id).then(({ data, error }) => {
-            if (error) {
-              console.error('Erro ao mover lead:', error);
-            } else {
-              console.log('Lead atualizado:', data);
-            }
-          });
+        // Pega usuário logado do localStorage (melhor que 'Usuário' fixo)
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const usuario = storedUser?.email || storedUser?.name || 'Desconhecido';
 
+        const novaAtividade = {
+          tipo: 'mudanca_status',
+          data_hora: new Date().toISOString(),
+          status_anterior: lead.status,
+          status_novo: newStatus,
+          usuario: usuario
+        };
+        const historico = [...(lead.historico_atividades || []), novaAtividade];
 
+        // LOG para debug
+        console.log('Vai tentar atualizar o lead:', lead.id, historico);
 
-          return { ...lead, status: newStatus, historico_atividades: historico, updated_at: new Date().toISOString() };
+        const { data, error } = await supabase.from('leads').update({
+          status: newStatus,
+          activity_history: historico,
+          updated_at: new Date().toISOString()
+        }).eq('id', lead.id);
+
+        if (error) {
+          console.error('Erro ao mover lead:', error);
+        } else {
+          console.log('Lead atualizado:', data);
         }
-        return lead;
-      });
-      setLeads(updatedLeads);
+
+        // Atualiza no front também
+        setLeads(prevLeads =>
+          prevLeads.map(l =>
+            l.id === lead.id
+              ? { ...l, status: newStatus, historico_atividades: historico, updated_at: new Date().toISOString() }
+              : l
+          )
+        );
+      }
       if (Array.isArray(leadData)) setSelectedLeads([]);
     } catch (error) {
       console.error('Erro ao mover leads:', error);
     }
   };
+
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
