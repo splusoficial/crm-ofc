@@ -12,6 +12,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email, name, and wh_id are required' });
   }
 
+  console.log(`NEXT_PUBLIC_SITE_URL: ${process.env.NEXT_PUBLIC_SITE_URL}`);
+
   try {
     // Check if user exists in Supabase Auth
     const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers({ email });
