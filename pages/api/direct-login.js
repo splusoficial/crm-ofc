@@ -32,7 +32,10 @@ export default async function handler(req, res) {
 
     if (linkError) throw linkError;
 
-    return res.status(200).json({ action_link: data.properties.action_link });
+    return res.status(200).json({
+      action_link: data.properties.action_link,
+      site_url_used: process.env.NEXT_PUBLIC_SITE_URL
+    });
   } catch (err) {
     console.error('[direct-login] erro:', err);
     return res.status(500).json({ error: err.message });
