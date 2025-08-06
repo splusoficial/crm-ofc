@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { supabase } from '../lib/supabase';
+import { supabase } from './lib/supabase';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import KanbanIcon from './components/crm/icons/KanbanIcon';
