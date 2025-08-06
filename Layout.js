@@ -54,8 +54,24 @@ export default function Layout({ children }) {
 
     window.addEventListener('userUpdated', handleUserUpdate);
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        console.log('Layout detected SIGNED_IN');
+        const user = session.user;
+        const userData = {
+          ...user,
+          name: user.user_metadata.name,
+          wh_id: user.user_metadata.wh_id,
+          isAuthenticated: true,
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        window.dispatchEvent(new Event('userUpdated'));
+      }
+    });
+
     return () => {
       window.removeEventListener('userUpdated', handleUserUpdate);
+      subscription.unsubscribe();
     };
   }, []);
 
