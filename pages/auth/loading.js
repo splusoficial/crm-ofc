@@ -3,17 +3,17 @@ import { useRouter } from 'next/router';
 
 export default function Loading() {
   const router = useRouter();
-  const { redirectTo } = router.query;
+  const { email, new_user } = router.query;
 
   useEffect(() => {
-    if (redirectTo) {
+    if (email && new_user) {
       const timeout = setTimeout(() => {
-        window.location.href = redirectTo;
+        router.push(`/crm?magic_login=${email}`);
       }, 3000); // 3-second delay
 
       return () => clearTimeout(timeout);
     }
-  }, [redirectTo]);
+  }, [email, new_user, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

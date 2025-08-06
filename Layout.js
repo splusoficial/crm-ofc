@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { supabase } from '../lib/supabase';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import KanbanIcon from './components/crm/icons/KanbanIcon';
@@ -57,6 +58,44 @@ export default function Layout({ children }) {
       window.removeEventListener('userUpdated', handleUserUpdate);
     };
   }, []);
+
+  useEffect(() => {
+    const handleMagicLogin = async () => {
+      if (router.query.magic_login) {
+        const email = router.query.magic_login;
+        try {
+          const response = await fetch('/api/direct-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+
+          if (response.ok) {
+            const { session, user } = await response.json();
+            // Manually set the session in the Supabase client
+            await supabase.auth.setSession(session);
+
+            // Store user info in localStorage
+            localStorage.setItem('user', JSON.stringify({ ...user, isAuthenticated: true }));
+
+            // Trigger a manual update to re-render the layout
+            window.dispatchEvent(new Event('userUpdated'));
+
+            // Clean the URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+
+          } else {
+            console.error('Magic login failed:', await response.text());
+          }
+        } catch (error) {
+          console.error('Error during magic login:', error);
+        }
+      }
+    };
+
+    handleMagicLogin();
+  }, [router.query.magic_login]);
 
 
   const loadUserFromStorage = () => {
