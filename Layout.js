@@ -71,20 +71,8 @@ export default function Layout({ children }) {
           });
 
           if (response.ok) {
-            const { session, user } = await response.json();
-            // Manually set the session in the Supabase client
-            await supabase.auth.setSession(session);
-
-            // Store user info in localStorage
-            localStorage.setItem('user', JSON.stringify({ ...user, isAuthenticated: true }));
-
-            // Trigger a manual update to re-render the layout
-            window.dispatchEvent(new Event('userUpdated'));
-
-            // Clean the URL
-            const newUrl = window.location.pathname;
-            window.history.replaceState({}, document.title, newUrl);
-
+            const { action_link } = await response.json();
+            window.location.href = action_link;
           } else {
             console.error('Magic login failed:', await response.text());
           }
