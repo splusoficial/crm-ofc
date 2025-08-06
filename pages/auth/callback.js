@@ -6,10 +6,35 @@ export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
         console.log('SIGNED_IN, session:', session);
-        // O usuário está logado, redireciona para a página principal do app
+
+        const user = session?.user;
+        const { name, wh_id } = user?.user_metadata || {};
+
+        // Se o usuário é novo e tem metadados, atualize o perfil
+        if (user && name && wh_id) {
+          try {
+            const response = await fetch('/api/update-user', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ name, wh_id }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error('Failed to update user profile:', errorData);
+            }
+          } catch (error) {
+            console.error('Error calling update-user API:', error);
+          }
+        }
+
+        // Redireciona para a página principal do app
         router.push('/crm');
       }
     });
