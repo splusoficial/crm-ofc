@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
@@ -12,27 +12,56 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email, name, and wh_id are required' });
   }
 
-  const protocol = req.headers['x-forwarded-proto'] || (req.connection.encrypted ? 'https' : 'http');
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  const baseUrl = `${protocol}://${host}`;
+  try {
+    // Check if user exists in Supabase Auth
+    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers({ email });
+    if (listError) throw listError;
 
-  const { data, error } = await supabase.auth.signInWithOtp({
-    email: email,
-    options: {
-      emailRedirectTo: `${baseUrl}/auth/callback`,
-      data: {
-        name,
-        wh_id,
+    let user = users.length > 0 ? users[0] : null;
+    let isNewUser = false;
+
+    if (!user) {
+      isNewUser = true;
+      // User doesn't exist, create them
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: true, // Auto-confirm email
+        user_metadata: { name, wh_id },
+      });
+
+      if (createError) throw createError;
+
+      // Also create them in the public 'user' table
+      const { error: insertError } = await supabaseAdmin
+        .from('user')
+        .insert({ id: newUser.user.id, email, name, wh_id });
+
+      if (insertError) throw insertError;
+      user = newUser.user;
+    }
+
+    // Generate a magic link for the user
+    const { data, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+      options: {
+        redirectTo: `${req.headers.origin}/auth/callback`,
       },
-    },
-  });
+    });
 
-  if (error) {
-    console.error('Error sending magic link:', error);
-    return res.status(500).json({ error: 'Could not send magic link.' });
+    if (linkError) throw linkError;
+
+    // For new users, redirect to a loading page first
+    if (isNewUser) {
+        // The loading page will then redirect to the magic link
+        return res.redirect(`/auth/loading?redirectTo=${encodeURIComponent(data.properties.action_link)}`);
+    }
+
+    // For existing users, redirect directly to the magic link
+    res.redirect(data.properties.action_link);
+
+  } catch (error) {
+    console.error('Error in generate-link:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
-
-  // Instead of redirecting, we'll return a success message.
-  // The user will receive an email with the magic link.
-  return res.status(200).json({ message: 'Magic link sent successfully. Please check your email.' });
 }
