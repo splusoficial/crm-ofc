@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import ReactInputMask from 'react-input-mask';
+import { getStatusOptions } from '../../config/statusConfig';
 
-// Defina as opções de status aqui
-const statusOptions = [
-  { value: 'new_conversation', label: 'Nova Conversa' },
-  { value: 'interested_lead', label: 'Lead Interessado' },
-  { value: 'appointment_scheduled', label: 'Agendado' },
-  { value: 'cancelled', label: 'Cancelou' },
-  { value: 'rescheduled', label: 'Reagendou' },
-  { value: 'appointment_attended', label: 'Compareceu' },
-  { value: 'procedure_sold', label: 'Vendeu Procedimento' },
-  { value: 'relationship', label: 'Relacionamento' }
-];
+const statusOptions = getStatusOptions();
 
 
 // Função de formatação: recebe string só com números!

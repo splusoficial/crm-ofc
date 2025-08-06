@@ -1,3 +1,5 @@
+// pages/api/direct-login.js
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -13,6 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 1. Verifica se o usuário existe
     const { data: user, error } = await supabaseAdmin
       .from('user')
       .select('*')
@@ -22,20 +25,15 @@ export default async function handler(req, res) {
     if (error) throw error;
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
-    const { data, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: email,
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-        },
+    // 2. Gera sessão diretamente para o usuário
+    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+      user_id: user.id
     });
 
-    if (linkError) throw linkError;
+    if (sessionError) throw sessionError;
 
-    return res.status(200).json({
-      action_link: data.properties.action_link,
-      site_url_used: process.env.NEXT_PUBLIC_SITE_URL
-    });
+    // 3. Retorna o token de sessão
+    return res.status(200).json(sessionData);
   } catch (err) {
     console.error('[direct-login] erro:', err);
     return res.status(500).json({ error: err.message });
