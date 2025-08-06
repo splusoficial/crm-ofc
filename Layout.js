@@ -71,8 +71,9 @@ export default function Layout({ children }) {
           });
 
           if (response.ok) {
-            const { action_link } = await response.json();
-            window.location.href = action_link;
+            const data = await response.json();
+            console.log('Response from /api/direct-login:', data);
+            window.location.href = data.action_link;
           } else {
             console.error('Magic login failed:', await response.text());
           }
