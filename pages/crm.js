@@ -135,33 +135,39 @@ export default function CRM() {
   const handleMoveLeads = async (leadData, newStatus) => {
     const leadsToUpdate = Array.isArray(leadData) ? leadData : [leadData.id];
     try {
-        const updatedLeads = leads.map(lead => {
-            if (leadsToUpdate.includes(lead.id) && lead.status !== newStatus) {
-                const novaAtividade = {
-                    tipo: 'mudanca_status',
-                    data_hora: new Date().toISOString(),
-                    status_anterior: lead.status,
-                    status_novo: newStatus,
-                    usuario: 'Usuário'
-                };
-                const historico = [...(lead.historico_atividades || []), novaAtividade];
+      const updatedLeads = leads.map(lead => {
+        if (leadsToUpdate.includes(lead.id) && lead.status !== newStatus) {
+          const novaAtividade = {
+            tipo: 'mudanca_status',
+            data_hora: new Date().toISOString(),
+            status_anterior: lead.status,
+            status_novo: newStatus,
+            usuario: 'Usuário'
+          };
+          const historico = [...(lead.historico_atividades || []), novaAtividade];
 
-                supabase.from('leads').update({
-                    status: newStatus,
-                    activity_history: historico,
-                    updated_at: new Date().toISOString()
-                }).eq('id', lead.id).then(({ error }) => {
-                    if (error) console.error('Erro ao mover lead:', error);
-                });
-
-                return { ...lead, status: newStatus, historico_atividades: historico, updated_at: new Date().toISOString() };
+          supabase.from('leads').update({
+            status: newStatus,
+            activity_history: historico,
+            updated_at: new Date().toISOString()
+          }).eq('id', lead.id).then(({ data, error }) => {
+            if (error) {
+              console.error('Erro ao mover lead:', error);
+            } else {
+              console.log('Lead atualizado:', data);
             }
-            return lead;
-        });
-        setLeads(updatedLeads);
-        if (Array.isArray(leadData)) setSelectedLeads([]);
+          });
+
+
+
+          return { ...lead, status: newStatus, historico_atividades: historico, updated_at: new Date().toISOString() };
+        }
+        return lead;
+      });
+      setLeads(updatedLeads);
+      if (Array.isArray(leadData)) setSelectedLeads([]);
     } catch (error) {
-        console.error('Erro ao mover leads:', error);
+      console.error('Erro ao mover leads:', error);
     }
   };
 
