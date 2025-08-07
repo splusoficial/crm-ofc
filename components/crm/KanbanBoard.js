@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Users, TrendingUp } from 'lucide-react';
 import LeadCard from './LeadCard';
 import ManualMoveInfoModal from './ManualMoveInfoModal';
+import StatusExplanationModal from './StatusExplanationModal';
 import { getAllStatuses } from '@/config/statusConfig';
 
 export default function KanbanBoard({
@@ -17,6 +18,13 @@ export default function KanbanBoard({
   const [draggedLead, setDraggedLead] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
   const [showManualMoveModal, setShowManualMoveModal] = useState(false);
+  const [showExplanationModal, setShowExplanationModal] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState(null);
+
+  const handleHeaderClick = (column) => {
+    setSelectedColumn(column);
+    setShowExplanationModal(true);
+  };
 
   const columns = getAllStatuses();
 
@@ -159,7 +167,10 @@ export default function KanbanBoard({
                 onDrop={(e) => handleDrop(e, column.id)}
               >
                 {/* Header da etapa */}
-                <div className="bg-white p-4 rounded-t-xl border-b border-gray-200">
+                <div
+                  className="bg-white p-4 rounded-t-xl border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleHeaderClick(column)}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">
                       {column.label}
@@ -234,6 +245,11 @@ export default function KanbanBoard({
       <ManualMoveInfoModal
         isOpen={showManualMoveModal}
         onClose={() => setShowManualMoveModal(false)}
+      />
+      <StatusExplanationModal
+        isOpen={showExplanationModal}
+        onClose={() => setShowExplanationModal(false)}
+        column={selectedColumn}
       />
     </div>
   );
