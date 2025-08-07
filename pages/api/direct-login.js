@@ -32,8 +32,8 @@ export default async function handler(req, res) {
 
     if (sessionError) throw sessionError;
 
-    // 3. Retorna o token de sessão
-    return res.status(200).json(sessionData);
+    // 3. Retorna o token de sessão e os dados do usuário
+    return res.status(200).json({ session: sessionData.session, user });
   } catch (err) {
     console.error('[direct-login] erro:', err);
     return res.status(500).json({ error: err.message });

@@ -87,9 +87,18 @@ export default function Layout({ children }) {
           });
 
           if (response.ok) {
-            const data = await response.json();
-            console.log('Response from /api/direct-login:', data);
-            window.location.href = data.action_link;
+            const { session, user } = await response.json();
+            await supabase.auth.setSession(session);
+
+            const userData = {
+              ...user,
+              isAuthenticated: true,
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+
+            window.dispatchEvent(new Event('userUpdated'));
+
+            router.push('/crm');
           } else {
             console.error('Magic login failed:', await response.text());
           }
