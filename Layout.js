@@ -7,7 +7,7 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import KanbanIcon from './components/crm/icons/KanbanIcon';
 
-// Componente SidebarToggleIcon (agora importado diretamente)
+// Componente SidebarToggleIcon
 const SidebarToggleIcon = ({ className, ...props }) => (
   <svg
     width="16"
@@ -24,7 +24,6 @@ const SidebarToggleIcon = ({ className, ...props }) => (
     />
   </svg>
 );
-// Fim do componente SidebarToggleIcon
 
 const ToggleSidebarContext = React.createContext();
 
@@ -54,31 +53,50 @@ export default function Layout({ children }) {
 
     window.addEventListener('userUpdated', handleUserUpdate);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        console.log('Layout detected SIGNED_IN');
-        const user = session.user;
-        const userData = {
-          ...user,
-          name: user.user_metadata.name,
-          wh_id: user.user_metadata.wh_id,
-          isAuthenticated: true,
-        };
-        localStorage.setItem('user', JSON.stringify(userData));
-        window.dispatchEvent(new Event('userUpdated'));
-      }
-    });
-
     return () => {
       window.removeEventListener('userUpdated', handleUserUpdate);
-      subscription.unsubscribe();
     };
   }, []);
 
   useEffect(() => {
-    const handleMagicLogin = async () => {
-      if (router.query.magic_login) {
-        const email = router.query.magic_login;
+    // NOVO: Processa auth_data da query string
+    const handleAuthFromQuery = async () => {
+      const { auth_data, magic_login, error } = router.query;
+
+      // Se houver erro de auth, apenas loga
+      if (error === 'auth_failed') {
+        console.error('❌ Falha na autenticação via magic link');
+        return;
+      }
+
+      // Se houver auth_data, processa e salva no localStorage
+      if (auth_data) {
+        try {
+          const userData = JSON.parse(decodeURIComponent(auth_data));
+          console.log('📦 Dados de auth recebidos:', userData);
+
+          // Salva no localStorage
+          localStorage.setItem('user', JSON.stringify(userData));
+
+          // Dispara evento para atualizar componentes
+          window.dispatchEvent(new Event('userUpdated'));
+
+          // Remove auth_data da URL para limpar
+          const newQuery = { ...router.query };
+          delete newQuery.auth_data;
+          router.replace({
+            pathname: router.pathname,
+            query: newQuery
+          }, undefined, { shallow: true });
+
+        } catch (err) {
+          console.error('❌ Erro ao processar auth_data:', err);
+        }
+      }
+
+      // Mantém compatibilidade com o sistema antigo
+      if (magic_login) {
+        const email = magic_login;
         try {
           const response = await fetch('/api/direct-login', {
             method: 'POST',
@@ -87,18 +105,19 @@ export default function Layout({ children }) {
           });
 
           if (response.ok) {
-            const { session, user } = await response.json();
-            await supabase.auth.setSession(session);
+            const { user } = await response.json();
 
-            const userData = {
-              ...user,
-              isAuthenticated: true,
-            };
-            localStorage.setItem('user', JSON.stringify(userData));
-
+            // Salva no localStorage
+            localStorage.setItem('user', JSON.stringify(user));
             window.dispatchEvent(new Event('userUpdated'));
 
-            router.push('/crm');
+            // Remove magic_login da URL
+            const newQuery = { ...router.query };
+            delete newQuery.magic_login;
+            router.replace({
+              pathname: router.pathname,
+              query: newQuery
+            }, undefined, { shallow: true });
           } else {
             console.error('Magic login failed:', await response.text());
           }
@@ -108,19 +127,18 @@ export default function Layout({ children }) {
       }
     };
 
-    handleMagicLogin();
-  }, [router.query.magic_login]);
-
+    if (router.isReady) {
+      handleAuthFromQuery();
+    }
+  }, [router.isReady, router.query]);
 
   const loadUserFromStorage = () => {
     try {
       const storedUserString = localStorage.getItem('user') || '{}';
-      console.log('🔍 Raw localStorage:', storedUserString); // ← Adiciona este log
+      console.log('🔍 Raw localStorage:', storedUserString);
 
       const storedUser = JSON.parse(storedUserString);
       console.log('🔍 Parsed user object:', storedUser);
-      console.log('🔍 User email:', storedUser?.email);
-      console.log('🔍 User isAuthenticated:', storedUser?.isAuthenticated);
 
       if (storedUser?.email) {
         console.log('✅ Layout encontrou usuário válido:', storedUser.email);
@@ -132,7 +150,7 @@ export default function Layout({ children }) {
 
         setLoggedUser(storedUser);
       } else {
-        console.log('❌ Layout não encontrou email válido - objeto:', storedUser);
+        console.log('❌ Layout não encontrou email válido');
       }
     } catch (error) {
       console.error('💥 Erro ao carregar usuário do localStorage:', error);
@@ -140,9 +158,9 @@ export default function Layout({ children }) {
   };
 
   const handleLogout = () => {
-    // localStorage.removeItem('user');
-    // setLoggedUser(null);
-    // Redireciona para o sistema principal usando a env var
+    localStorage.removeItem('user');
+    setLoggedUser(null);
+    // Redireciona para o sistema principal
     window.location.href = mainSystemUrl;
   };
 
@@ -354,7 +372,6 @@ export default function Layout({ children }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-
 
               <div className="flex items-center h-20 px-4 flex-shrink-0">
                 <img

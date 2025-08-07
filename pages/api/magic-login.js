@@ -1,5 +1,4 @@
 // pages/api/magic-login.js
-
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 
@@ -7,9 +6,6 @@ const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
-// Função para aguardar um tempo específico
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default async function handler(req, res) {
   try {
@@ -47,71 +43,63 @@ export default async function handler(req, res) {
 
     if (lookupError) throw lookupError;
 
-    let authUserId;
-    let isNewUser = false;
+    let userToSave;
 
-    // 2. Se não existe, cria usuário no Auth E na tabela
+    // 2. Se não existe, cria usuário APENAS na tabela (não no Auth)
     if (!existingUser) {
-      console.log('[magic-login] Criando usuário no Auth...');
-      isNewUser = true;
+      console.log('[magic-login] Criando novo usuário na tabela...');
 
-      // PRIMEIRO: Cria no Auth do Supabase
-      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        user_metadata: { name, wh_id }
-      });
+      // Gera um ID único para o usuário
+      const userId = crypto.randomUUID();
 
-      if (authError) {
-        console.error('[magic-login] Erro ao criar no Auth:', authError);
-        throw authError;
-      }
-
-      authUserId = authUser.user.id;
-      console.log('[magic-login] Usuário criado no Auth com ID:', authUserId);
-
-      // SEGUNDO: Insere na tabela user com o ID do Auth
-      const { error: insertError } = await supabaseAdmin
+      // Insere na tabela user
+      const { data: newUser, error: insertError } = await supabaseAdmin
         .from('user')
         .insert({
-          id: authUserId,
+          id: userId,
           email,
           name,
           wh_id
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) {
         console.error('[magic-login] Erro ao inserir na tabela:', insertError);
         throw insertError;
       }
 
-      console.log('[magic-login] Usuário criado com sucesso nos dois lugares!');
-
-      // AGUARDA 3 SEGUNDOS para o Supabase sincronizar os dados
-      console.log('[magic-login] Aguardando sincronização do Supabase (3s)...');
-      await sleep(3000);
+      userToSave = newUser;
+      console.log('[magic-login] Usuário criado com sucesso!');
 
     } else {
       console.log('[magic-login] Usuário já existe na tabela');
-      authUserId = existingUser.id;
+      userToSave = existingUser;
     }
 
-    // 3. MÉTODO SIMPLIFICADO - Redireciona usando URL dinâmica
-    if (isNewUser) {
-      // Para usuários novos, usa página de loading que aguarda e faz login
-      console.log('[magic-login] Redirecionando usuário novo para página de loading...');
-      return res.redirect(`${baseUrl}/auth/loading?email=${encodeURIComponent(email)}&new_user=true`);
-    } else {
-      // Para usuários existentes, redireciona direto
-      console.log('[magic-login] Redirecionando usuário existente direto para CRM...');
-      return res.redirect(`${baseUrl}/crm?magic_login=${encodeURIComponent(email)}`);
-    }
+    // 3. SOLUÇÃO SIMPLES: Redireciona com os dados no query string
+    // O frontend vai pegar esses dados e salvar no localStorage
+    const userDataEncoded = encodeURIComponent(JSON.stringify({
+      id: userToSave.id,
+      email: userToSave.email,
+      name: userToSave.name || name, // Usa o nome do token se não tiver na tabela
+      wh_id: userToSave.wh_id || wh_id,
+      isAuthenticated: true,
+      loginMethod: 'magic_link'
+    }));
+
+    // Redireciona direto para o CRM com os dados
+    return res.redirect(`${baseUrl}/crm?auth_data=${userDataEncoded}`);
 
   } catch (err) {
     console.error('[magic-login] Erro geral:', err);
-    return res.status(500).json({
-      error: 'Erro interno do servidor',
-      details: err.message
-    });
+
+    // Em caso de erro, redireciona para o CRM mesmo assim
+    // mas sem dados de autenticação
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const baseUrl = `${protocol}://${host}`;
+
+    return res.redirect(`${baseUrl}/crm?error=auth_failed`);
   }
 }

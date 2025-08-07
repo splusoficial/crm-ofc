@@ -1,5 +1,4 @@
 // pages/api/direct-login.js
-
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -25,15 +24,19 @@ export default async function handler(req, res) {
     if (error) throw error;
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
-    // 2. Gera sessão diretamente para o usuário
-    const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
-      user_id: user.id
+    // 2. SOLUÇÃO: Retorna apenas os dados do usuário
+    // O frontend vai salvar no localStorage
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        wh_id: user.wh_id,
+        isAuthenticated: true
+      }
     });
 
-    if (sessionError) throw sessionError;
-
-    // 3. Retorna o token de sessão
-    return res.status(200).json(sessionData);
   } catch (err) {
     console.error('[direct-login] erro:', err);
     return res.status(500).json({ error: err.message });
