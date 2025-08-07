@@ -7,10 +7,13 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
+      if (event === 'SIGNED_IN' && session) {
         console.log('SIGNED_IN, session:', session);
 
-        // Redirect to the CRM page after sign in
+        // Salva os dados do usuário no localStorage
+        localStorage.setItem('user', JSON.stringify(session.user));
+
+        // Redireciona para a página de CRM após o login
         router.push('/crm');
       }
     });
