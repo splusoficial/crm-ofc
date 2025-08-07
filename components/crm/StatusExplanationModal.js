@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import AiStepCard from './AiStepCard';
+import ManualStepCard from './ManualStepCard';
 
 const Switch = ({ checked, onChange }) => (
   <button
@@ -23,19 +25,13 @@ export default function StatusExplanationModal({ isOpen, onClose, column }) {
   const handleAiToggle = (value) => {
     setIsAiActive(value);
     console.log(`IA for status ${column.id} is now ${value ? 'active' : 'paused'}`);
-    // Aqui você pode chamar a função onPauseAIChange(column.id, value)
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">{column.label}</h2>
-            <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${column.isAI ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-gray-100 text-gray-800 border-gray-300'}`}>
-              {column.isAI ? 'Etapa com IA' : 'Etapa Manual'}
-            </span>
-          </div>
+          <h2 className="text-lg font-bold text-gray-900">{column.label}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={24} />
           </button>
@@ -46,7 +42,7 @@ export default function StatusExplanationModal({ isOpen, onClose, column }) {
         </p>
 
         {column.isAI && (
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <div className="flex items-center justify-between">
               <label htmlFor="ai-toggle" className="text-sm font-medium text-gray-800">
                 Permitir atuação da IA nesta etapa
@@ -58,6 +54,12 @@ export default function StatusExplanationModal({ isOpen, onClose, column }) {
               />
             </div>
           </div>
+        )}
+
+        {column.isAI ? (
+          <AiStepCard label={column.label} />
+        ) : (
+          <ManualStepCard label={column.label} />
         )}
       </div>
     </div>
