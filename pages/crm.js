@@ -251,13 +251,13 @@ export default function CRM() {
           </div>
 
           {/* Debug Info - Remova isso em produção */}
-          {process.env.NODE_ENV === 'development' && (
+          {/* {process.env.NODE_ENV === 'development' && (
             <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-4 text-xs">
               <p>Debug: {leads.length} leads carregados</p>
               <p>User: {JSON.parse(localStorage.getItem('user') || '{}')?.email}</p>
               <p>wh_id: {JSON.parse(localStorage.getItem('user') || '{}')?.wh_id}</p>
             </div>
-          )}
+          )} */}
 
           <FilterBar
             searchTerm={searchTerm}
